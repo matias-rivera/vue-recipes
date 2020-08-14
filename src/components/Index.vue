@@ -15,24 +15,39 @@
 </template>
 
 <script>
+import db from '@/firebase/init';
+
 export default {
   name: 'Index',
   data () {
     return {
-      recipes: [
-        {title: 'Pan con Queso',slug:'pan_con_queso',
-        ingredients:['pan','queso','tomate'],id:'1'},
-        {title: 'Café con Leche',slug:'cafe_con_leche',
-        ingredients:['cafe','leche','azúcar'],id:'2'}
-      ]
+      recipes: []
     }
   },
   methods:{
     deleteRecipe(id){
-      this.recipes = this.recipes.filter(recipe => {
+      //delete from firestore
+      db.collection('recipes').doc(id).delete()
+      .then(() => {
+        //delete from local
+        this.recipes = this.recipes.filter(recipe => {
         return recipe.id != id
-      })
+        });
+      }); 
+
+      
     }
+  },
+  created(){
+    //fetch data
+    db.collection('recipes').get()
+    .then(snapshot => {
+      snapshot.forEach(doc => {
+        let recipe = doc.data();
+        recipe.id = doc.id;
+        this.recipes.push(recipe);
+      })
+    });
   }
 }
 </script>
